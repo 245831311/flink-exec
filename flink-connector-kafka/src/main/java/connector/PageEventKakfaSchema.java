@@ -11,6 +11,8 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 
 import com.google.gson.Gson;
 
+import entity.PageEvent;
+
 /**
  * 
  * @author Lenovo

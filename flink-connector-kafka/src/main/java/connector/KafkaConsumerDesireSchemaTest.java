@@ -19,6 +19,8 @@ import org.apache.flink.streaming.util.serialization.JSONKeyValueDeserialization
 import org.apache.flink.streaming.util.serialization.TypeInformationKeyValueSerializationSchema;
 import org.apache.flink.util.Collector;
 
+import entity.PageEvent;
+
 public class KafkaConsumerDesireSchemaTest {
 
 	public static void main(String[] args) throws Exception {

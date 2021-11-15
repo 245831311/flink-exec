@@ -9,6 +9,8 @@ import org.apache.flink.api.common.typeinfo.TypeInformation;
 
 import com.google.gson.Gson;
 
+import entity.PageEvent;
+
 /**
  * 
  * @author Lenovo

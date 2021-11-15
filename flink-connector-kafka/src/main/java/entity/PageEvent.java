@@ -1,10 +1,12 @@
-package connector;
+package entity;
 
 public class PageEvent {
 
 	public String timestamp;
 	
 	public String page;
+	
+	private String userId;
 	
 	
 	public PageEvent() {
@@ -24,6 +26,14 @@ public class PageEvent {
 
 	public void setPage(String page) {
 		this.page = page;
+	}
+
+	public String getUserId() {
+		return userId;
+	}
+
+	public void setUserId(String userId) {
+		this.userId = userId;
 	}
 
 	@Override
