@@ -10,6 +10,7 @@ import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.common.serialization.TypeInformationSerializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.api.common.typeinfo.Types;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -23,6 +24,9 @@ import entity.PageEvent;
 
 public class KafkaConsumerTypeInfoSchemaTest2 {
 
+	
+	private static final String topic = "string-schema-test";
+
 	public static void main(String[] args) throws Exception {
 		
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -32,9 +36,11 @@ public class KafkaConsumerTypeInfoSchemaTest2 {
 		prop.setProperty("group.id", "test");
 		
 		//json schema
-		TypeInformation<PageEvent> typeInfo = TypeInformation.of(PageEvent.class);
-		TypeInformationSerializationSchema<PageEvent> schema = new TypeInformationSerializationSchema(typeInfo, env.getConfig());
-		DataStream<PageEvent> ds =  env.addSource(new FlinkKafkaConsumer<>("input",schema, prop), "kafka-test");
+		TypeInformation<PageEvent> typeInfo = Types.POJO(PageEvent.class);
+		
+		TypeInformationSerializationSchema<PageEvent> schema = new TypeInformationSerializationSchema<PageEvent>(typeInfo, env.getConfig());
+		
+		DataStream<PageEvent> ds =  env.addSource(new FlinkKafkaConsumer<>(topic,schema, prop), "kafka-test");
 		DataStream<String> ds2 = ds.map(x->x.getPage());
 		ds2.print();
 		

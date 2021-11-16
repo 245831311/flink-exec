@@ -1,12 +1,14 @@
 package entity;
 
-public class PageEvent {
+import java.io.Serializable;
+
+public class PageEvent implements Serializable{
 
 	public String timestamp;
 	
 	public String page;
 	
-	private String userId;
+	public String userId;
 	
 	
 	public PageEvent() {
@@ -38,7 +40,9 @@ public class PageEvent {
 
 	@Override
 	public String toString() {
-		return "PageEvent [timestamp=" + timestamp + ", page=" + page + "]";
+		return "PageEvent [timestamp=" + timestamp + ", page=" + page + ", userId=" + userId + "]";
 	}
+
+	
 	
 }

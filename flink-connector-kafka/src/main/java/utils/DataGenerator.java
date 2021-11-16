@@ -12,7 +12,7 @@ import entity.PageEvent;
 
 public class DataGenerator extends RichSourceFunction<PageEvent>{
 
-	private int batchTime = 5;
+	private int batchTime = 2 * 1000;
 	private int batchNum = 1000;
 	private Random random = new Random(20);
 	private List<String> pageList = new ArrayList<String>(Arrays.asList("/user","/org","/page","/job","/order"));
@@ -21,8 +21,20 @@ public class DataGenerator extends RichSourceFunction<PageEvent>{
 	public void run(SourceContext<PageEvent> ctx)
 			throws Exception {
 		
+		int count = 0;
 		while(true){
+			PageEvent page = new PageEvent();
+			page.setTimestamp(createTimeStamp(count));
+			page.setUserId(createUserId());
+			page.setPage(getPage());
 			
+			ctx.collect(page);
+			
+			count++;
+			if(count == batchNum){
+				count = 0;
+				Thread.sleep(batchTime);
+			}
 		}
 	}
 
@@ -39,6 +51,10 @@ public class DataGenerator extends RichSourceFunction<PageEvent>{
 	public String createTimeStamp(int offerSet){
 		Instant instant = Instant.now().plusMillis(offerSet);
 		return instant.toEpochMilli() + "";
+	}
+	
+	public String getPage(){
+		return pageList.get(random.nextInt(5));
 	}
 	
 	
