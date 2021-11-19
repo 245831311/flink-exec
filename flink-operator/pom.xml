@@ -5,12 +5,11 @@
     <artifactId>flink-learning</artifactId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
-  
-  <groupId>org.jaydon.flink-connector</groupId>
-  <artifactId>flink-connector-kafka</artifactId>
+  <groupId>org.jaydon.flink-operator</groupId>
+  <artifactId>flink-operator</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-  <name>flink-connector-kafka</name>
-   <packaging>jar</packaging>
+  <name>flink-operator</name>
+  <description>learning operator and doing some demo</description>
   
   
   <build>
@@ -32,7 +31,7 @@
                             <transformers>
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>connector.KafkaProducerKafkaSerializationSchemaTest</mainClass>
+                                    <mainClass>operator.window.KeyByWindowOperator</mainClass>
                                 </transformer>
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">

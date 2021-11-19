@@ -33,7 +33,7 @@ public class KafkaProducerKafkaSerializationSchemaTest {
 	
 	private static Properties config(){
 		Properties prop = new Properties();
-		prop.setProperty("bootstrap.servers", "1ae376193e8a:9092");
+		prop.setProperty("bootstrap.servers", "kafka:9092");
 		return prop;
 	}
 }
