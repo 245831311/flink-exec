@@ -20,6 +20,7 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.filesystem.StreamingFileSink;
 import org.apache.flink.streaming.api.functions.sink.filesystem.rollingpolicies.DefaultRollingPolicy;
+import org.apache.flink.streaming.api.functions.windowing.ProcessAllWindowFunction;
 import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
 import org.apache.flink.streaming.api.windowing.assigners.SlidingEventTimeWindows;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
@@ -32,7 +33,7 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.util.Collector;
 
 
-public class KeyByWindowOperator {
+public class WindowOperator {
 
 	private static String outputPath = "F:/flink/jaydon";
 	
@@ -62,9 +63,26 @@ public class KeyByWindowOperator {
 				.process(new MyProcessFunction2());*/
 		
 		DataStream<Tuple5<String,String,String,String,Integer>> keyByPeDs = peDs
-				.keyBy("userId","page")
-				.countWindow(10)
-				.process(new MyCountProcessFunction());
+				.windowAll(TumblingEventTimeWindows.of(Time.milliseconds(1000)))
+				.allowedLateness(Time.minutes(1))
+				.process(new ProcessAllWindowFunction<PageEvent,Tuple5<String,String,String,String,Integer>, TimeWindow>() {
+
+					@Override
+					public void process(Context context,
+							Iterable<PageEvent> in, Collector<Tuple5<String,String,String,String,Integer>> out) throws Exception {
+						Iterator<PageEvent> pageIt = in.iterator();
+						int count = 0;
+						while(pageIt.hasNext()){
+							pageIt.next();
+							++count;
+						}
+			            TimeWindow window = context.window();
+			            Date start = new Date(window.getStart());
+			            Date end = new Date(window.getEnd());
+			            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd HH:mm:ss");
+						out.collect(Tuple5.of(sdf.format(start),sdf.format(end) , null,null, count));
+					}
+				});
 		final StreamingFileSink<Tuple5<String,String,String,String,Integer>>  sf = StreamingFileSink.forRowFormat(new Path(outputPath), new SimpleStringEncoder<Tuple5<String,String,String,String,Integer>>("UTF-8"))
 			    .withRollingPolicy(
 			            DefaultRollingPolicy.builder()
@@ -78,49 +96,6 @@ public class KeyByWindowOperator {
 	}
 	
 	
-	public static class MyProcessFunction extends ProcessWindowFunction
-		<PageEvent,Tuple4<String,String,String,Integer>,Tuple,TimeWindow>{
-
-		@Override
-		public void process(Tuple tuple,Context context,
-				Iterable<PageEvent> in, Collector<Tuple4<String, String, String, Integer>> out) throws Exception {
-			Iterator<PageEvent> pageIt = in.iterator();
-			int count = 0;
-			while(pageIt.hasNext()){
-				pageIt.next();
-				++count;
-			}
-            TimeWindow window = context.window();
-            
-            Date start = new Date(window.getStart());
-            Date end = new Date(window.getEnd());
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd HH:mm:ss");
-			out.collect(Tuple4.of(sdf.format(start),sdf.format(end) , tuple.getField(0), count));
-		}
-
-	}
-	
-	public static class MyProcessFunction2 extends ProcessWindowFunction
-	<PageEvent,Tuple5<String,String,String,String,Integer>,Tuple,TimeWindow>{
-
-	@Override
-	public void process(Tuple tuple,Context context,
-			Iterable<PageEvent> in, Collector<Tuple5<String, String, String,String, Integer>> out) throws Exception {
-		Iterator<PageEvent> pageIt = in.iterator();
-		int count = 0;
-		while(pageIt.hasNext()){
-			pageIt.next();
-			++count;
-		}
-        TimeWindow window = context.window();
-        
-        Date start = new Date(window.getStart());
-        Date end = new Date(window.getEnd());
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd HH:mm:ss");
-		out.collect(Tuple5.of(sdf.format(start),sdf.format(end) , tuple.getField(0),tuple.getField(1), count));
-	}
-	
-}
 	public static class MyCountProcessFunction extends ProcessWindowFunction
 	<PageEvent,Tuple5<String,String,String,String,Integer>,Tuple,GlobalWindow>{
 

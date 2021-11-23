@@ -24,7 +24,7 @@ public class KafkaProducerKafkaSerializationSchemaTest {
 		
 		DataStream<PageEvent> pageDs = env.addSource(new DataGenerator());
 		
-		FlinkKafkaProducer producer = new FlinkKafkaProducer<>(topic,new PageEventProducerKakfaSchema2(),config(),FlinkKafkaProducer.Semantic.EXACTLY_ONCE);
+		FlinkKafkaProducer producer = new FlinkKafkaProducer<>(topic,new PageEventProducerKakfaSchema2(),config(),FlinkKafkaProducer.Semantic.NONE);
 		pageDs.addSink(producer);
 		
 		env.execute("print producer kafkaSerialize kafka");
