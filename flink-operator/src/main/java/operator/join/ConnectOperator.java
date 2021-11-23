@@ -8,42 +8,68 @@ import org.apache.flink.api.common.eventtime.WatermarkGenerator;
 import org.apache.flink.api.common.eventtime.WatermarkOutput;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.JoinFunction;
+import org.apache.flink.api.common.state.ValueState;
+import org.apache.flink.api.common.state.ValueStateDescriptor;
+import org.apache.flink.api.common.typeinfo.Types;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.co.CoMapFunction;
+import org.apache.flink.streaming.api.functions.co.RichCoMapFunction;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingProcessingTimeWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
 
-public class JoinOperator {
+public class ConnectOperator {
 
 	public static void main(String[] args) throws Exception {
 		
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 		
-		DataStream<String> nameDs = env.fromElements("man","jerry","aka","john","apple","apple")
-				.assignTimestampsAndWatermarks(
-						WatermarkStrategy
-						.forGenerator((ctx) ->new MyWatermarkGenerator())
-						.withTimestampAssigner((x)->new TimeStampExtractor())
-						);
+		DataStream<String> nameDs = env.fromElements("man","jerry","aka","john","apple","cc").keyBy(x->x);
 
-		DataStream<String> infoDs = env.fromElements("apple","vv")
-				.assignTimestampsAndWatermarks(
-						WatermarkStrategy
-						.forGenerator((ctx) ->new MyWatermarkGenerator())
-						.withTimestampAssigner((x)->new TimeStampExtractor())
-						);
+		DataStream<String> infoDs = env.fromElements("apple","vv").keyBy(x -> x);
+
+				
 		
-		DataStream<String> joinDs = nameDs.join(infoDs)
-		.where(x->x)
-		.equalTo(x->x)
-		.window(TumblingEventTimeWindows.of(Time.milliseconds(1000)))
-		.apply(new JoinFunction<String, String, String> (){
-	        @Override
-	        public String join(String first, String second) {
-	            return first + "," + second;
-	        }
-	    });
+		DataStream<String> joinDs = nameDs
+				.connect(infoDs)
+				.map(new RichCoMapFunction<String, String, String>() {
+					ValueState<String> state;
+					@Override
+					public String map1(String value) throws Exception {
+						String otherValue = state.value();
+						if(otherValue != null){
+							if(value.equals(otherValue)){
+								return "yes";
+							}
+						}else{
+							state.update(value);
+						}
+						return "no";
+					}
+
+					@Override
+					public void open(Configuration parameters) throws Exception {
+						ValueStateDescriptor<String> vd = new ValueStateDescriptor<>("state", Types.STRING);
+						state = getRuntimeContext().getState(vd);
+					}
+
+					@Override
+					public String map2(String value) throws Exception {
+						String otherValue = state.value();
+						if(otherValue != null){
+							if(value.equals(otherValue)){
+								return "yes";
+							}
+						}else{
+							state.update(value);
+						}
+						return "no";
+					}
+					
+					
+				});
 		
 		joinDs.print();
 
