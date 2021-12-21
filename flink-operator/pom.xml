@@ -31,7 +31,7 @@
                             <transformers>
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>operator.join.CoGroupOperator</mainClass>
+                                    <mainClass>operator.sideout.SideOutOperator</mainClass>
                                 </transformer>
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
